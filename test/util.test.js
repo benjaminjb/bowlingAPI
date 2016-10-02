@@ -20,7 +20,7 @@ const createOrUpdateFrame = require('../lib/utils/frame.createOrUpdate');
 const createRound = require('../lib/utils/frame.createRound');
 const createGame = require('../lib/utils/game.create');
 
-xdescribe('createOrUpdateFrame', () => {
+describe('createOrUpdateFrame', () => {
   var number = new mongoose.Types.ObjectId;
 
   before( ()=> {
@@ -154,14 +154,34 @@ describe('createRound', () => {
         .then((res) => {
           mongooseDAO.find('frameModel')
               .then((finding) => {
-                console.log("!!!!!!!"+finding);
                 expect(finding.length).to.eq(3);
-                let names = finding.each( (player) => {
-                  return player.player;
+                let playersNames = [];
+                let nextPlayerNames = [];
+                let frameNumbers = [];
+                let gameNumbers  = [];
+                finding.forEach( (player) => {
+                  playersNames.push(player.player);
+                  nextPlayerNames.push(player.nextPlayer);
+                  if (frameNumbers.indexOf(player.frameNumber)==-1) {
+                    frameNumbers.push(player.frameNumber);
+                  };
+                  if (gameNumbers.indexOf(player.gameNumber.toString())==-1) {
+                    gameNumbers.push(player.gameNumber.toString());
+                  }
                 });
-                expect(names).to.include("Dude");
-                expect(names).to.include("Walter");
-                expect(names).to.include("Donny");
+
+                expect(playersNames).to.include("Dude");
+                expect(playersNames).to.include("Walter");
+                expect(playersNames).to.include("Donny");
+
+                expect(nextPlayerNames).to.include("Dude");
+                expect(nextPlayerNames).to.include("Walter");
+                expect(nextPlayerNames).to.include("Donny");
+
+                expect(frameNumbers.length).to.eq(1);
+                expect(frameNumbers[0]).to.eq(1);
+
+                expect(gameNumbers.length).to.eq(1);
                 done();
               });
         })
@@ -170,75 +190,56 @@ describe('createRound', () => {
           done();
         });
   });
-  xit('should update a frame if the frame exists', (done) => {
-    var frame = {
-      gameNumber: number,
-      player: "Brett",
-      nextPlayer: "Damocles",
-      frameNumber: 1,
-      rolls: 4
-    };
-    createRound(frame)
-        .then((res) => {
-          mongooseDAO.find('frameModel')
-              .then((finding) => {
-                expect(finding.length).to.eq(1);
-                expect(finding[0].player).to.eq("Brett");
-                expect(finding[0].rolls.length).to.eq(1);
-                expect(finding[0].rolls[0]).to.eq(4);
-                done();
-              });
-        })
-        .catch((err) => {
-          throw Error("Whoops", err);
-          done();
-        });
+  it('shouldn\'t create a round if there aren\'t players', (done) => {
+    let players = [];
+
+    createRound(players)
+      .then((res) => {
+        throw new Error('We shouldn\'t be here',res);
+        done()
+      })
+      .catch((err) => {
+        expect(err).to.exist;
+        expect(err.message).to.eq("Need an array of 1 to 12 players");
+        done();
+      });
   });
-  xit('should update a frame if the frame exists, part two: checking out rolls.push', (done) => {
-    var frame = {
-      gameNumber: number,
-      player: "Brett",
-      nextPlayer: "Damocles",
-      frameNumber: 1,
-      rolls: 3,
-      finished: true
-    };
-    createRound(frame)
+  it('should create a round of any frame and gameNumber', (done) => {
+    let players = ['Dude','Walter','Donny'];
+
+    createRound(players, 2, number)
         .then((res) => {
-          mongooseDAO.find('frameModel')
+          mongooseDAO.find('frameModel', {frameNumber:2})
               .then((finding) => {
-                expect(finding.length).to.eq(1);
-                expect(finding[0].player).to.eq("Brett");
-                expect(finding[0].rolls.length).to.eq(2);
-                expect(finding[0].rolls[0]).to.eq(4);
-                expect(finding[0].rolls[1]).to.eq(3);
-                expect(finding[0].finished).to.eq(true);
-                done();
-              });
-        })
-        .catch((err) => {
-          throw Error("Whoops", err);
-          done();
-        });
-  });
-  xit('should create a second frame', (done) => {
-    var frame = {
-      gameNumber: number,
-      player: "Brett",
-      nextPlayer: "Damocles",
-      frameNumber: 2,
-    };
-    createRound(frame)
-        .then((res) => {
-          mongooseDAO.find('frameModel')
-              .then((finding) => {
-                expect(finding.length).to.eq(2);
-                expect(finding[0].player).to.eq("Brett");
-                expect(finding[1].player).to.eq("Brett");
-                expect(finding[0].frameNumber).to.exist;
-                expect(finding[1].frameNumber).to.exist;
-                expect(finding[0].frameNumber).to.be.above(0);
-                expect(finding[1].frameNumber).to.be.above(0);
+                expect(finding.length).to.eq(3);
+                let playersNames = [];
+                let nextPlayerNames = [];
+                let frameNumbers = [];
+                let gameNumbers  = [];
+                finding.forEach( (player) => {
+                  playersNames.push(player.player);
+                  nextPlayerNames.push(player.nextPlayer);
+                  if (frameNumbers.indexOf(player.frameNumber)==-1) {
+                    frameNumbers.push(player.frameNumber);
+                  };
+                  if (gameNumbers.indexOf(player.gameNumber.toString())==-1) {
+                    gameNumbers.push(player.gameNumber.toString());
+                  }
+                });
+
+                expect(playersNames).to.include("Dude");
+                expect(playersNames).to.include("Walter");
+                expect(playersNames).to.include("Donny");
+
+                expect(nextPlayerNames).to.include("Dude");
+                expect(nextPlayerNames).to.include("Walter");
+                expect(nextPlayerNames).to.include("Donny");
+
+                expect(frameNumbers.length).to.eq(1);
+                expect(frameNumbers[0]).to.eq(2);
+
+                expect(gameNumbers.length).to.eq(1);
+                expect(gameNumbers[0]).to.eq(number.toString());
                 done();
               });
         })
