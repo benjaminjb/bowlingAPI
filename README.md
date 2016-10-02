@@ -1,1 +1,5 @@
 # bowlingAPI
+
+NODE_LOG_LEVEL
+NODE_ENV
+PORT
