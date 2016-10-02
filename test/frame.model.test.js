@@ -15,8 +15,7 @@ const frameModel = require('../lib/frame/frame.model');
 describe('The model for a frame', () => {
   it('should fail if there\'s no gameNumber', (done) => {
     var frame = new frameModel({
-      player: "William",
-      nextPlayer: "William"
+      player: "William"
     });
     frame.validate((err) => {
       expect(err.errors.gameNumber).to.exist;
@@ -26,8 +25,7 @@ describe('The model for a frame', () => {
   it('shouldn\'t accept non-ObjectIds as gameNumber', (done) => {
     var frame = new frameModel({
       gameNumber: "",
-      player: "William",
-      nextPlayer: "William"
+      player: "William"
     });
     frame.validate((err) => {
       expect(err.errors.gameNumber).to.exist;
@@ -38,8 +36,7 @@ describe('The model for a frame', () => {
   it('should accept only an ObjectId as gameNumber', (done) => {
     var frame = new frameModel({
       gameNumber: new mongoose.Types.ObjectId,
-      player: "William",
-      nextPlayer: "William"
+      player: "William"
     });
     frame.validate((err) => {
       expect(err).to.eq(null);
@@ -51,8 +48,7 @@ describe('The model for a frame', () => {
     var frame = new frameModel({
       gameNumber: new mongoose.Types.ObjectId,
       frameNumber: "hi",
-      player: "William",
-      nextPlayer: "William"
+      player: "William"
     });
     frame.validate((err) => {
       expect(err.errors.frameNumber).to.exist;
@@ -64,8 +60,7 @@ describe('The model for a frame', () => {
     var frame = new frameModel({
       gameNumber: new mongoose.Types.ObjectId,
       frameNumber: 11,
-      player: "William",
-      nextPlayer: "William"
+      player: "William"
     });
     frame.validate((err) => {
       expect(err.errors.frameNumber).to.exist;
@@ -76,8 +71,7 @@ describe('The model for a frame', () => {
   it('should have a default frameNumber', () => {
     var frame = new frameModel({
       gameNumber: new mongoose.Types.ObjectId,
-      player: "William",
-      nextPlayer: "William"
+      player: "William"
     });
     var fullFrame = frame.toObject( {minimize:false} );
     expect(fullFrame.frameNumber).to.eq(1);
@@ -86,8 +80,7 @@ describe('The model for a frame', () => {
     var frame = new frameModel({
       gameNumber: new mongoose.Types.ObjectId,
       frameNumber: 10,
-      player: "William",
-      nextPlayer: "William"
+      player: "William"
     });
     frame.validate((err) => {
       expect(err).to.eq(null);
@@ -97,8 +90,7 @@ describe('The model for a frame', () => {
 
   it('should fail if there\'s no player', (done) => {
     var frame = new frameModel({
-      gameNumber: new mongoose.Types.ObjectId,
-      nextPlayer: "William"
+      gameNumber: new mongoose.Types.ObjectId
     });
     frame.validate((err) => {
       expect(err.errors.player).to.exist;
@@ -108,8 +100,7 @@ describe('The model for a frame', () => {
   it('shouldn\'t accept empty strings as player', (done) => {
     var frame = new frameModel({
       gameNumber: new mongoose.Types.ObjectId,
-      player: "",
-      nextPlayer: "William"
+      player: ""
     });
     frame.validate((err) => {
       expect(err.errors.player).to.exist;
@@ -120,6 +111,17 @@ describe('The model for a frame', () => {
   it('should accept only a string as player', (done) => {
     var frame = new frameModel({
       gameNumber: new mongoose.Types.ObjectId,
+      player: "William"
+    });
+    frame.validate((err) => {
+      expect(err).to.eq(null);
+      done();
+    });
+  });
+
+  it('should accept only a String as nextPlayer', (done) => {
+    var frame = new frameModel({
+      gameNumber: new mongoose.Types.ObjectId,
       player: "William",
       nextPlayer: "William"
     });
@@ -128,34 +130,11 @@ describe('The model for a frame', () => {
       done();
     });
   });
-
-  it('should fail if there\'s no nextPlayer', (done) => {
-    var frame = new frameModel({
-      gameNumber: new mongoose.Types.ObjectId,
-      player: "William"
-    });
-    frame.validate((err) => {
-      expect(err.errors.nextPlayer).to.exist;
-      done();
-    });
-  });
-  it('shouldn\'t accept empty strings as nextPlayer', (done) => {
+  it('should cast other vars to String as nextPlayer', (done) => {
     var frame = new frameModel({
       gameNumber: new mongoose.Types.ObjectId,
       player: "William",
-      nextPlayer: ""
-    });
-    frame.validate((err) => {
-      expect(err.errors.nextPlayer).to.exist;
-      expect(err.errors.nextPlayer.message).to.eq("Path `nextPlayer` is required.");
-      done();
-    });
-  });
-  it('should accept only a String as nextPlayer', (done) => {
-    var frame = new frameModel({
-      gameNumber: new mongoose.Types.ObjectId,
-      player: "William",
-      nextPlayer: "William"
+      nextPlayer: 44
     });
     frame.validate((err) => {
       expect(err).to.eq(null);

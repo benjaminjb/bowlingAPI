@@ -14,10 +14,12 @@ const expect = require('chai').expect;
 // Import accessory modules
 const mongoose = require('mongoose');
 const mongooseDAO = require('../lib/db/mongo.controller');
+const frameModel = require('../lib/frame/frame.model');
 
 // Import to test
 const createOrUpdateFrame = require('../lib/utils/frame.createOrUpdate');
 const createRound = require('../lib/utils/frame.createRound');
+const getCurrentFrame = require('../lib/utils/frame.getCurrent');
 const createGame = require('../lib/utils/game.create');
 
 describe('createOrUpdateFrame', () => {
@@ -131,7 +133,7 @@ describe('createOrUpdateFrame', () => {
   });
 
   after( () => {
-    mongooseDAO.removeAll('frameModel');
+    //mongooseDAO.removeAll('frameModel');
     mongooseDAO.disconnect();
   })
 });
@@ -157,14 +159,20 @@ describe('createRound', () => {
                 expect(finding.length).to.eq(3);
                 let playersNames = [];
                 let nextPlayerNames = [];
+                let nextPlayerNamesArray = null;
                 let frameNumbers = [];
                 let gameNumbers  = [];
                 finding.forEach( (player) => {
                   playersNames.push(player.player);
-                  nextPlayerNames.push(player.nextPlayer);
+                  if (typeof (player.nextPlayer) === "string") {
+                    nextPlayerNames.push(player.nextPlayer);
+                  }
+                  if (Array.isArray(player.nextPlayer)) {
+                    nextPlayerNamesArray = player.nextPlayer;
+                  }
                   if (frameNumbers.indexOf(player.frameNumber)==-1) {
                     frameNumbers.push(player.frameNumber);
-                  };
+                  }
                   if (gameNumbers.indexOf(player.gameNumber.toString())==-1) {
                     gameNumbers.push(player.gameNumber.toString());
                   }
@@ -174,7 +182,7 @@ describe('createRound', () => {
                 expect(playersNames).to.include("Walter");
                 expect(playersNames).to.include("Donny");
 
-                expect(nextPlayerNames).to.include("Dude");
+                expect(nextPlayerNamesArray).to.deep.eq(["Dude","Walter","Donny"]);
                 expect(nextPlayerNames).to.include("Walter");
                 expect(nextPlayerNames).to.include("Donny");
 
@@ -214,14 +222,20 @@ describe('createRound', () => {
                 expect(finding.length).to.eq(3);
                 let playersNames = [];
                 let nextPlayerNames = [];
+                let nextPlayerNamesArray = null;
                 let frameNumbers = [];
                 let gameNumbers  = [];
                 finding.forEach( (player) => {
                   playersNames.push(player.player);
-                  nextPlayerNames.push(player.nextPlayer);
+                  if (typeof (player.nextPlayer) === "string") {
+                    nextPlayerNames.push(player.nextPlayer);
+                  }
+                  if (Array.isArray(player.nextPlayer)) {
+                    nextPlayerNamesArray = player.nextPlayer;
+                  }
                   if (frameNumbers.indexOf(player.frameNumber)==-1) {
                     frameNumbers.push(player.frameNumber);
-                  };
+                  }
                   if (gameNumbers.indexOf(player.gameNumber.toString())==-1) {
                     gameNumbers.push(player.gameNumber.toString());
                   }
@@ -231,7 +245,7 @@ describe('createRound', () => {
                 expect(playersNames).to.include("Walter");
                 expect(playersNames).to.include("Donny");
 
-                expect(nextPlayerNames).to.include("Dude");
+                expect(nextPlayerNamesArray).to.deep.eq(["Dude","Walter","Donny"]);
                 expect(nextPlayerNames).to.include("Walter");
                 expect(nextPlayerNames).to.include("Donny");
 
@@ -247,6 +261,69 @@ describe('createRound', () => {
           throw Error("Whoops", err);
           done();
         });
+  });
+
+  after( () => {
+    mongooseDAO.removeAll('frameModel');
+    mongooseDAO.disconnect();
+  })
+});
+
+describe('getCurrentFrame', () => {
+  let number = new mongoose.Types.ObjectId;
+  let players = ['Dude','Walter','Donny'];
+
+  before( (done)=> {
+    mongooseDAO.connect(config.mongo.uri, config.mongo.options);
+    mongooseDAO.removeAll('frameModel');
+    createRound(players,1,number)
+      .then( (_res) => { done() })
+  });
+
+  it('should be a function', () =>{
+    expect(getCurrentFrame).to.be.an.instanceOf(Function);
+  });
+  it('should return 1 for a game just created', (done) => {
+    getCurrentFrame(number)
+      .then((res) => {
+        expect(res).to.eq(1);
+        done();
+      })
+      .catch((err) => {
+        throw Error("Whoops", err);
+        done();
+      });
+  });
+  it('should return 2 for a game where round 1 is all finished', (done) => {
+    frameModel.update({gameNumber: number},{'$set': {finished: true}}, {multi:true})
+      .then( (_res) => {
+        return getCurrentFrame(number)
+      })
+      .then((res) => {
+        expect(res).to.eq(2);
+        done();
+      })
+      .catch((err) => {
+        throw Error("Whoops", err.message);
+        done();
+      });
+  });
+  it('should return 0 for a game where round 10 is all finished', (done) => {
+    createRound(players,10,number)
+      .then((_res) => {
+        return frameModel.update({gameNumber: number, frameNumber: 10}, {'$set': {finished: true}}, {multi: true})
+      })
+      .then( (_res) => {
+        return getCurrentFrame(number)
+      })
+      .then((res) => {
+        expect(res).to.eq(0);
+        done();
+      })
+      .catch((err) => {
+        throw Error("Whoops", err.message);
+        done();
+      });
   });
 
   after( () => {
