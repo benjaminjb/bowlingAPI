@@ -21,7 +21,6 @@ const createOrUpdateFrame = require('../lib/utils/frame.createOrUpdate');
 const createRound = require('../lib/utils/frame.createRound');
 const getCurrentFrame = require('../lib/utils/frame.getCurrent');
 const nextPlayerUp = require('../lib/utils/frame.nextPlayerUp');
-const createGame = require('../lib/utils/game.create');
 
 describe('createOrUpdateFrame', () => {
   var number = new mongoose.Types.ObjectId;
@@ -79,7 +78,7 @@ describe('createOrUpdateFrame', () => {
           done();
         });
   });
-  it('should update a frame if the frame exists, part two: checking out rolls.push', (done) => {
+  it('should update a frame if the frame exists, part two: checking pushing to rolls array', (done) => {
     var frame = {
       gameNumber: number,
       player: "Brett",
@@ -115,15 +114,13 @@ describe('createOrUpdateFrame', () => {
     };
     createOrUpdateFrame(frame)
         .then((res) => {
-          mongooseDAO.find('frameModel')
+          mongooseDAO.findAndOrder('frameModel', {}, {frameNumber:1})
               .then((finding) => {
                 expect(finding.length).to.eq(2);
                 expect(finding[0].player).to.eq("Brett");
                 expect(finding[1].player).to.eq("Brett");
-                expect(finding[0].frameNumber).to.exist;
-                expect(finding[1].frameNumber).to.exist;
-                expect(finding[0].frameNumber).to.be.above(0);
-                expect(finding[1].frameNumber).to.be.above(0);
+                expect(finding[0].frameNumber).to.eq(1);
+                expect(finding[1].frameNumber).to.eq(2);
                 done();
               });
         })
@@ -132,9 +129,58 @@ describe('createOrUpdateFrame', () => {
           done();
         });
   });
+  it('should update another frame if rolls has an ObjectId', (done) => {
+    var newNumber = new mongoose.Types.ObjectId;
+    var id1;
+    var frame1 = {
+      gameNumber: newNumber,
+      player: "Max",
+      nextPlayer: "Hugh",
+      frameNumber: 1,
+    };
+    var frame2 = {
+      gameNumber: newNumber,
+      player: "Max",
+      nextPlayer: "Hugh",
+      frameNumber: 2
+    };
+    createOrUpdateFrame(frame1)
+      .then((res) => {
+        id1 = res._id;
+      })
+      .then(() => {
+        frame2.rolls = id1;
+        return createOrUpdateFrame(frame2)
+      })
+      .then((res2) => {
+        expect(res2.rolls).to.include(id1);
+        return frameModel.findOne(id1)
+      })
+      .then((origRes) => {
+        expect(origRes.rolls.length).to.eql(0);
+        frame2.rolls = 1;
+        return createOrUpdateFrame(frame2)
+      })
+      .then((updated) => {
+        expect(updated.rolls).to.include(1);
+        return frameModel.find({gameNumber:newNumber}).sort({frameNumber:1})
+      })
+      .then((foundResults) => {
+        expect(foundResults.length).to.eq(2);
+        expect(foundResults[0].rolls.length).to.eq(1);
+        expect(foundResults[0].rolls[0]).to.eq(1);
+        expect(foundResults[1].rolls.length).to.eq(1);
+        expect(foundResults[1].rolls[0]).to.eq(1);
+        done();
+      })
+      .catch((err) => {
+        throw Error("Whoops", err);
+        done();
+      });
+  });
 
   after( () => {
-    //mongooseDAO.removeAll('frameModel');
+    mongooseDAO.removeAll('frameModel');
     mongooseDAO.disconnect();
   })
 });
@@ -199,20 +245,6 @@ describe('createRound', () => {
           done();
         });
   });
-  it('shouldn\'t create a round if there aren\'t players', (done) => {
-    let players = [];
-
-    createRound(players)
-      .then((res) => {
-        throw new Error('We shouldn\'t be here',res);
-        done()
-      })
-      .catch((err) => {
-        expect(err).to.exist;
-        expect(err.message).to.eq("Need an array of 1 to 12 players");
-        done();
-      });
-  });
   it('should create a round of any frame and gameNumber', (done) => {
     let players = ['Dude','Walter','Donny'];
 
@@ -260,6 +292,30 @@ describe('createRound', () => {
         })
         .catch((err) => {
           throw Error("Whoops", err);
+          done();
+        });
+  });
+  it('shouldn\'t create a round if given an empty array', (done) => {
+    createRound([])
+      .then((res) => {
+        throw new Error('Shouldn\'t be here', res);
+        done()
+      })
+      .catch((err) => {
+        expect(err).to.exist;
+        expect(err.message).to.eq("Need an array of 1 to 12 players");
+        done();
+      });
+  });
+  it('shouldn\'t create a round if there aren\'t players given', (done) => {
+    createRound()
+        .then((res) => {
+          throw new Error('Shouldn\'t be here', res);
+          done()
+        })
+        .catch((err) => {
+          expect(err).to.exist;
+          expect(err.message).to.eq("Need an array of players");
           done();
         });
   });

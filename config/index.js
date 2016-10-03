@@ -28,6 +28,7 @@ var all = {
 // Testing config
 // ==============================================
 var test = {
+  test_uri: "localhost:9000",
   env: "testing",
   port: 9000,
   secrets: {

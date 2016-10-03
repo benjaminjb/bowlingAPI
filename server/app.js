@@ -8,6 +8,8 @@
 const config = require('../config/index');
 const log = require('../lib/log/logger');
 
+const mongooseDAO = require('../lib/db/mongo.controller');
+
 // Basic Restify server
 const restify = require('restify');
 const server = restify.createServer({name: 'bowlingAPI', version: '1.0.0'});
@@ -23,15 +25,11 @@ const customMiddleware = require('./middleware');
 server.use(customMiddleware.spy);
 
 // Add routes
-//require('../lib/frame/frame.routes')(server);
+require('../lib/frame/frame.routes')(server);
+mongooseDAO.connect(config.mongo.uri,config.mongo.options);
 
-// Export listen and close functions for easy server integration
-exports.listen = function (port) {
-  server.listen( port , () => {
-    log.info('%s listening at %s', server.name, server.url);
-  });
-};
+server.listen(config.port);
+log.info('%s listening at %s', server.name, server.url);
 
-exports.close = function (callback) {
-  server.close(callback);
-};
+// export app so we can test it
+module.exports = server;

@@ -8,4 +8,4 @@
 const server = require('./server/app');
 const config = require('./config/index');
 
-server.listen(config.PORT);
+server.listen(config.port);
