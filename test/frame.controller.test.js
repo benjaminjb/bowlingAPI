@@ -32,7 +32,7 @@ const getCurrentFrame = require('../lib/utils/frame.getCurrent');
 const nextPlayerUp = require('../lib/utils/frame.nextPlayerUp');
 
 
-xdescribe('Controller/Routes: post /game route and createGame', function () {
+describe('Controller/Routes: post /game route and createGame', function () {
   before( ()=> {
     mongooseDAO.removeAll('frameModel');
   });
@@ -44,9 +44,10 @@ xdescribe('Controller/Routes: post /game route and createGame', function () {
         .then(function (res) {
           expect(res).to.have.status(200);
           expect(res.body.status).to.eq(1);
-          expect(res.body.data.length).to.eq(2);
-          expect(res.body.data[0].player).to.be.oneOf(['Wil', 'Wheaton']);
-          expect(res.body.data[1].player).to.be.oneOf(['Wil', 'Wheaton']);
+          expect(res.body.data.players.length).to.eq(2);
+          expect(res.body.data.gameNumber).to.exist;
+          expect(res.body.data.round).to.eq(1);
+          expect(res.body.data.nextPlayer).to.eq('Wil');
           done();
         })
         .catch(function (err) {
@@ -76,44 +77,56 @@ xdescribe('Controller/Routes: post /game route and createGame', function () {
   })
 });
 
-xdescribe('Controller/Routes: get /round/:game_id route and getCurrentRound', function () {
+describe('Controller/Routes: get /game/:game_id route and getGameInfo', function () {
   var number = new mongoose.Types.ObjectId;
   before( (done)=> {
     mongooseDAO.removeAll('frameModel');
     done();
   });
   it("should return the current round of a game", function (done) {
-    createRound(["Luke", "Jessica"], 1, number)
-    .then(() => {
-      return frameModel.update({gameNumber: number},{'$set': {finished: true}}, {multi:true});
-    })
-    .then(() =>{
-      return createRound(["Luke", "Jessica"], 2, number);
-    })
-    .then(() => {
+    var array = [
+      { "order" : 0, "nextPlayer" : "Kara", "gameNumber" : number, "player" : "Walker", "rolls" : [ 1, 3 ], "finished" : true, "frameNumber" : 1, "__v" : 0 },
+      { "order" : 0, "nextPlayer" : "Kara", "gameNumber" : number, "player" : "Walker", "rolls" : [ 3, 4 ], "finished" : true, "frameNumber" : 2, "__v" : 0 },
+      { "order" : 0, "nextPlayer" : "Kara", "gameNumber" : number, "player" : "Walker", "rolls" : [ 9 ], "finished" : false, "frameNumber" : 3, "__v" : 0 },
+      { "order" : 1, "nextPlayer" : [ "Walker", "Kara" ], "gameNumber" : number, "player" : "Kara", "rolls" : [ 1, 1 ], "finished" : true, "frameNumber" : 1, "__v" : 0 },
+      { "order" : 1, "nextPlayer" : [ "Walker", "Kara" ], "gameNumber" : number, "player" : "Kara", "rolls" : [ 1, 1 ], "finished" : true, "frameNumber" : 2, "__v" : 0 },
+      { "order" : 1, "nextPlayer" : [ "Walker", "Kara" ], "gameNumber" : number, "player" : "Kara", "rolls" : [ 2 ], "finished" : false, "frameNumber" : 3, "__v" : 0 },
+    ];
+    frameModel.create(array)
       chai.request(server)
-        .get('/round/' + number)
+        .get('/game/' + number)
         .set('Content-Type', 'application/json')
         .then((res) => {
-          console.log(res.body)
           expect(res).to.have.status(200);
           expect(res.body.status).to.eq(1);
-          //expect(res.body.data).to.eq(2);
+          expect(res.body.data.frameResults[1]).to.eql([
+              { rolls: [ 1, 3 ], player: 'Walker', frameNumber: 1, score: 4 },
+              { rolls: [ 1, 1 ], player: 'Kara', frameNumber: 1, score: 2 }
+          ]);
+          expect(res.body.data.frameResults[2]).to.eql([
+            { rolls: [ 3, 4 ], player: 'Walker', frameNumber: 2, score: 7 },
+            { rolls: [ 1, 1 ], player: 'Kara', frameNumber: 2, score: 2 }
+          ]);
+          expect(res.body.data.frameResults[3]).to.eql([
+            { rolls: [ 9 ], player: 'Walker', frameNumber: 3, score: 9 },
+            { rolls: [ 2 ], player: 'Kara', frameNumber: 3, score: 2 }
+          ]);
+          expect(res.body.data.totalScores[0]).to.eql({ player: 'Walker', score: 20 })
+          expect(res.body.data.totalScores[1]).to.eql({ player: 'Kara', score: 6 })
           done();
         })
         .catch((err) => {
           throw err;
           done();
         })
-    })
   });
   after( () => {
-    //mongooseDAO.removeAll('frameModel');
+    mongooseDAO.removeAll('frameModel');
     server.close();
   })
 });
 
-describe('Controller/Routes: put /game route and updateFrame', function () {
+xdescribe('Controller/Routes: put /game route and updateFrame', function () {
   var number = new mongoose.Types.ObjectId;
   before( ()=> {
     mongooseDAO.removeAll('frameModel');
