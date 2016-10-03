@@ -26,7 +26,6 @@ const frameModel = require('../lib/frame/frame.model');
 const mongooseDAO = require('../lib/db/mongo.controller');
 
 // Add additional helper functions
-const createOrUpdateFrame = require('../lib/utils/frame.createOrUpdate');
 const createRound = require('../lib/utils/frame.createRound');
 const getCurrentRound = require('../lib/utils/frame.getCurrentRound');
 const nextPlayerUp = require('../lib/utils/frame.nextPlayerUp');
