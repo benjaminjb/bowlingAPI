@@ -6,7 +6,6 @@
 'use strict';
 
 const config = require('../config/index');
-const auth = require('../lib/auth/auth');
 const log = require('../lib/log/logger');
 
 /**
@@ -16,26 +15,8 @@ const log = require('../lib/log/logger');
 const _middleware = () => {
 
   return {
-    auth: auth,
     spy: spy
   };
-
-  /**
-   * @Description:
-   *    Runs authentication process when a request is received.
-   */
-  function auth(req, res, next) {
-    const authHeader = req.headers.authorization;
-    auth.authenticate(authHeader)
-        .then( () => {
-          next();
-        })
-        .catch( err => {
-          log.error('AUTH ERROR: ', err.message);
-          log.error('AUTH ERROR: ', err.stack);
-          return next(err);
-        });
-  }
 
   /**
    * @Description:

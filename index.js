@@ -7,5 +7,3 @@
 
 const server = require('./server/app');
 const config = require('./config/index');
-
-server.listen(config.port);

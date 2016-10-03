@@ -21,7 +21,6 @@ server.use(restify.bodyParser());
 
 // Add custom middleware
 const customMiddleware = require('./middleware');
-//server.use(customMiddleware.auth);
 server.use(customMiddleware.spy);
 
 // Add routes
