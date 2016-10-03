@@ -28,7 +28,7 @@ const mongooseDAO = require('../lib/db/mongo.controller');
 // Add additional helper functions
 const createOrUpdateFrame = require('../lib/utils/frame.createOrUpdate');
 const createRound = require('../lib/utils/frame.createRound');
-const getCurrentFrame = require('../lib/utils/frame.getCurrent');
+const getCurrentRound = require('../lib/utils/frame.getCurrentRound');
 const nextPlayerUp = require('../lib/utils/frame.nextPlayerUp');
 
 
@@ -83,7 +83,7 @@ describe('Controller/Routes: get /game/:game_id route and getGameInfo', function
     mongooseDAO.removeAll('frameModel');
     done();
   });
-  it("should return the current round of a game", function (done) {
+  it("should return info about the game", function (done) {
     var array = [
       { "order" : 0, "nextPlayer" : "Kara", "gameNumber" : number, "player" : "Walker", "rolls" : [ 1, 3 ], "finished" : true, "frameNumber" : 1, "__v" : 0 },
       { "order" : 0, "nextPlayer" : "Kara", "gameNumber" : number, "player" : "Walker", "rolls" : [ 3, 4 ], "finished" : true, "frameNumber" : 2, "__v" : 0 },
@@ -93,32 +93,34 @@ describe('Controller/Routes: get /game/:game_id route and getGameInfo', function
       { "order" : 1, "nextPlayer" : [ "Walker", "Kara" ], "gameNumber" : number, "player" : "Kara", "rolls" : [ 2 ], "finished" : false, "frameNumber" : 3, "__v" : 0 },
     ];
     frameModel.create(array)
-      chai.request(server)
-        .get('/game/' + number)
-        .set('Content-Type', 'application/json')
-        .then((res) => {
-          expect(res).to.have.status(200);
-          expect(res.body.status).to.eq(1);
-          expect(res.body.data.frameResults[1]).to.eql([
-              { rolls: [ 1, 3 ], player: 'Walker', frameNumber: 1, score: 4 },
-              { rolls: [ 1, 1 ], player: 'Kara', frameNumber: 1, score: 2 }
-          ]);
-          expect(res.body.data.frameResults[2]).to.eql([
-            { rolls: [ 3, 4 ], player: 'Walker', frameNumber: 2, score: 7 },
-            { rolls: [ 1, 1 ], player: 'Kara', frameNumber: 2, score: 2 }
-          ]);
-          expect(res.body.data.frameResults[3]).to.eql([
-            { rolls: [ 9 ], player: 'Walker', frameNumber: 3, score: 9 },
-            { rolls: [ 2 ], player: 'Kara', frameNumber: 3, score: 2 }
-          ]);
-          expect(res.body.data.totalScores[0]).to.eql({ player: 'Walker', score: 20 })
-          expect(res.body.data.totalScores[1]).to.eql({ player: 'Kara', score: 6 })
-          done();
-        })
-        .catch((err) => {
-          throw err;
-          done();
-        })
+    .then(() => {
+          chai.request(server)
+              .get('/game/' + number)
+              .set('Content-Type', 'application/json')
+              .then((res) => {
+                expect(res).to.have.status(200);
+                expect(res.body.status).to.eq(1);
+                expect(res.body.data.frameResults[1]).to.eql([
+                  { rolls: [ 1, 3 ], player: 'Walker', frameNumber: 1, score: 4 },
+                  { rolls: [ 1, 1 ], player: 'Kara', frameNumber: 1, score: 2 }
+                ]);
+                expect(res.body.data.frameResults[2]).to.eql([
+                  { rolls: [ 3, 4 ], player: 'Walker', frameNumber: 2, score: 7 },
+                  { rolls: [ 1, 1 ], player: 'Kara', frameNumber: 2, score: 2 }
+                ]);
+                expect(res.body.data.frameResults[3]).to.eql([
+                  { rolls: [ 9 ], player: 'Walker', frameNumber: 3, score: 9 },
+                  { rolls: [ 2 ], player: 'Kara', frameNumber: 3, score: 2 }
+                ]);
+                expect(res.body.data.totalScores[0]).to.eql({ player: 'Walker', score: 20 })
+                expect(res.body.data.totalScores[1]).to.eql({ player: 'Kara', score: 6 })
+                done();
+              })
+              .catch((err) => {
+                throw err;
+                done();
+              })
+     })
   });
   after( () => {
     mongooseDAO.removeAll('frameModel');
