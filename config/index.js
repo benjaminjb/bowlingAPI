@@ -12,9 +12,6 @@ const __ = require('lodash');
 var all = {
   env: process.env.NODE_ENV || "development",
   port: process.env.PORT || 9000,
-  secrets: {
-    server: 'server-secret'
-  },
   mongo: {
     uri: 'mongodb://localhost/bowlingAPI-dev',
     options: {
@@ -31,9 +28,6 @@ var test = {
   test_uri: "localhost:9000",
   env: "testing",
   port: 9000,
-  secrets: {
-    server: 'testing'
-  },
   mongo: {
     uri: 'mongodb://localhost/bowlingAPI-test',
     options: {
@@ -50,10 +44,6 @@ var nonDevelopmentConfig = {
   mongo: {
     uri: process.env.MONGO_URI,
     options: JSON.parse(process.env.MONGO_OPTIONS) || {}
-  },
-  secrets: {
-    // TODO-Integation: share server secret with teams using API
-    server: 'four score and seven pins ago'
   }
 };
 
