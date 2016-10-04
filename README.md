@@ -63,4 +63,19 @@ Remember to change the routes for the `get` and `update` routes to include the i
  * Parameter | gameId 
  * Body    | `{ rolls: 4}`
  * Description | Updates the given game's current player and current round with the pins knocked down in that roll
- * Return  | Player state  
+ * Return  | Player state
+   
+## Future Development
+Security and containerization are two areas that I would like to develop more with this project. 
+
+ * A simple JWT authorization module could be used to authorize users making API calls.
+ * Docker might be useful, since the project could dockerize both an app and a database. (Or even better: a replica set.)
+   
+## Post-Mortem 
+I wanted to create an API that would require minimal work for the user/bowling alley, while I was also curious about event streaming databases: a database that doesn't hold one canonical record that is transformed over time, but instead keeps a stream of events.
+  
+An example might be a stream for a bank account: rather than hold one account with a balance, the bank streams all the events for the user--all the deposits and withdrawals--and sums those events up to provide a snapshot of the current bank account.
+
+I didn't go all the way in designing this bowlingAPI as a streaming, event-processing backend, partly because I wanted to minmize the number of models I used. That is, once I decided not to use a game model to hold essential game info (like who the players are) and only use frames, I had to work out a way to grab all the players for one game.
+
+For future development, I'd consider turning this into a stricter streaming architecture. The frame model already is designed with a nextPlayer field, so perhaps I could use that and an array to only create frames as needed/played.
