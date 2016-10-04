@@ -33,7 +33,7 @@ Ahem. *Don't forget to npm install!*
  3. `npm run test` will load and run mocha, which runs the tests
  
 ## Testing, Automated and Manual
-Testing was done with the Mocha and Chai libraries. Tests can be run totally (`npm run test`) or file by file for greater control (`mocha test/util.createRound.test.js`).
+Testing was done with the Mocha and Chai libraries. Tests can be run totally (`npm run test`) or file by file for greater control (e.g., `mocha test/util.createRound.test.js`).
 
 Besides the included automated tests, there is also a [Postman collection](docs/BowlingAPI.postman_collection.json) for ease of manual testing. To use, download and import the collection into Postman. 
 
