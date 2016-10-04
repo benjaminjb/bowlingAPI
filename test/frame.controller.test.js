@@ -154,24 +154,7 @@ describe('Controller/Routes: put /game route and updateFrame', function () {
         done();
       })
   });
-  it("doesn't let you score over 10 in one roll, cheater", function (done) {
-    chai.request(server)
-        .put('/game/' + getInfo)
-        .set('Content-Type', 'application/json')
-        .send({rolls: 11})
-        .then( (res) => {
-          console.log(res)
-          throw err;
-          done();
-        })
-        .catch(function (err) {
-          console.log(err.response.body.error)
-          //expect(err).to.have.status(400);
-          //expect(err.response.body.status).to.eq(0);
-          expect(err.response.body.error).to.eventually.exist//eq('Error: Can\'t score more than 10 in one roll');
-          done();
-        })
-  });
+
   afterEach( () => {
     mongooseDAO.removeAll('frameModel');
   })

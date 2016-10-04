@@ -47,6 +47,8 @@ var nonDevelopmentConfig = {
   }
 };
 
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+
 // Merge the config objects according to NODE_ENV
 // ==============================================
 if (process.env.NODE_ENV && process.env.NODE_ENV != 'development') {
